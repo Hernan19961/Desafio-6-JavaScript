@@ -51,3 +51,12 @@ h5{
 button{
     background-color: rgb(45, 45, 126);
 }
+
+h1{
+    font-size: 50px;
+}
+
+#resultado{
+    margin: 5%;
+    background-color: rgb(74, 74, 73);
+}
