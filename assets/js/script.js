@@ -1,3 +1,6 @@
+//grafico
+
+
 async function getMonedas() {
     const endpoint = "https://api.gael.cloud/general/public/monedas";
     const res = await fetch(endpoint);
@@ -7,7 +10,7 @@ async function getMonedas() {
 
 
 
-function prepararConfiguracionParaLaGrafica(monedas) {
+function grafica(monedas) {
     // Creamos las variables necesarias para el objeto de configuración
     const tipoDeGrafica = "line";
     const nombresDeLasMonedas = monedas.map((moneda) => moneda.Codigo);
@@ -36,10 +39,16 @@ function prepararConfiguracionParaLaGrafica(monedas) {
 
 async function renderGrafica() {
     const monedas = await getMonedas();
-    const config = prepararConfiguracionParaLaGrafica(monedas);
+    const config = grafica(monedas);
     const chartDOM = document.getElementById("myChart");
     new Chart(chartDOM, config);
 }
 renderGrafica();
 
+//termino de grafica
+
+
+
+
+// se empieza a crear el codigo para la logica del conversor
 
