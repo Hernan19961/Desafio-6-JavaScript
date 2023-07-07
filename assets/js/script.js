@@ -91,3 +91,5 @@ function randomHex(length) {
         Math.floor(Math.random() * 16 ** length).toString(16)
     ).slice(-length);
 }
+
+//agregar button de reset
