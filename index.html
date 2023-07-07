@@ -22,35 +22,20 @@
 
             <h5>Moneda a convertir:</h5>
             <select id="selector">
-                <option evalue="Seleccione moneda">Seleccione moneda</option>
-                <option evalue="1" id="1">Euro</option>
-                <option evalue="2" id="2">Ars</option>
-                <option evalue="3" id="3">Sol</option>
+                <option value="Seleccione moneda">Seleccione moneda</option>
+                <option value="dolar" id="dolar">Dolar</option>
+                <option value="euro" id="euro">Euro</option>
             </select>
-            <button id="buscar">Buscar</button>
+            <button id="buscar" onclick="convertir()">Buscar</button>
 
             <div id="resultado">
-                ...
-
             </div>
-
-
-
         </div>
+
         <div class="grafico">
-            <canvas id="myChart"></canvas>
+            <canvas id="grafico"></canvas>
         </div>
-
-
-
-
     </div>
-
-    
-
-
-
-
 </body>
 
 </html>

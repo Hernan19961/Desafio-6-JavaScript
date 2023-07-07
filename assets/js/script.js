@@ -1,54 +1,103 @@
-//grafico
+// Declaración de variables
+const input = document.getElementById("input");
+const selector = document.getElementById("selector");
+const resultado = document.getElementById("resultado");
+const urlApi = "https://mindicador.cl/api";
+const dolar = "https://mindicador.cl/api/dolar";
+const euro = "https://mindicador.cl/api/euro";
 
+const chart = document.getElementById("grafico").getContext("2d");
+let chartInstance;
 
-async function getMonedas() {
-    const endpoint = "https://api.gael.cloud/general/public/monedas";
-    const res = await fetch(endpoint);
-    const monedas = await res.json();
-    return monedas;
+// Request a la API
+async function getMonedas(urlApi) {
+    const endpoint = urlApi;
+    try {
+        const res = await fetch(endpoint);
+        const monedas = await res.json();
+        return monedas;
+    } catch (e) {
+        throw new Error("Error al obtener los datos de la API");
+    }
 }
 
+// Función para convertir USD y euro
+async function convertir() {
+    if (input.value === "" || isNaN(input.value) || input.value < 0.1) {
+        alert("Ingrese un monto válido");
+    } else {
+        try {
+            const divisas = await getMonedas(urlApi);
 
-
-function grafica(monedas) {
-    // Creamos las variables necesarias para el objeto de configuración
-    const tipoDeGrafica = "line";
-    const nombresDeLasMonedas = monedas.map((moneda) => moneda.Codigo);
-    const titulo = "Monedas";
-    const colorDeLinea = "red";
-    const valores = monedas.map((moneda) => {
-        const valor = moneda.Valor.replace(",", ".");
-        return Number(valor);
-    });
-    // Creamos el objeto de configuración usando las variables anteriores
-    const config = {
-        type: tipoDeGrafica,
-        data: {
-            labels: nombresDeLasMonedas,
-            datasets: [
-                {
-                    label: titulo,
-                    backgroundColor: colorDeLinea,
-                    data: valores
-                }
-            ]
+            if (selector.value === "dolar") {
+                resultado.innerHTML = `Resultado: ${new Intl.NumberFormat("de-DE", {
+                    style: "currency",
+                    currency: "USD",
+                }).format((input.value / divisas.dolar.valor).toFixed(2))}`;
+                renderGrafica();
+            } else if (selector.value === "euro") {
+                resultado.innerHTML = `Resultado: ${new Intl.NumberFormat("de-DE", {
+                    style: "currency",
+                    currency: "EUR",
+                }).format((input.value / divisas.euro.valor).toFixed(2))}`;
+                renderGrafica();
+            }
+        } catch (err) {
+            alert("Algo no funciona. Intenta la consulta nuevamente");
+            console.log(err.message);
         }
-    };
-    return config;
+    }
 }
 
-async function renderGrafica() {
-    const monedas = await getMonedas();
-    const config = grafica(monedas);
-    const chartDOM = document.getElementById("myChart");
-    new Chart(chartDOM, config);
+// Función para cargar los datos en el gráfico
+async function cargarDatos(selector) {
+    const tipoDeGrafica = "line";
+    const titulo = "Histórico " + selector.value.toUpperCase();
+    const colorDeLinea = "#" + randomHex(6);
+
+    try {
+        const divisas = await getMonedas(urlApi + "/" + selector.value);
+
+        const fechas = divisas.serie.map((elemento) => elemento.fecha);
+        const etiquetas = divisas.serie.map((etiq) => etiq.valor);
+
+        const config = {
+            type: tipoDeGrafica,
+            data: {
+                labels: fechas.slice(-10).reverse(),
+                datasets: [
+                    {
+                        label: titulo,
+                        borderColor: colorDeLinea,
+                        backgroundColor: colorDeLinea,
+                        data: etiquetas.slice(-10).reverse(),
+                    },
+                ],
+            },
+        };
+
+        // Función para refrescar el gráfico
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+        chartInstance = new Chart(chart, config);
+    } catch (err) {
+        alert("Algo salió mal al cargar los datos del gráfico");
+        console.log(err.message);
+    }
 }
-renderGrafica();
 
-//termino de grafica
+function renderGrafica() {
+    cargarDatos(selector).then(() => {
+        document.getElementById("grafico").style.display = "block";
+    });
+}
 
+selector.addEventListener("change", function () {
+    document.getElementById("grafico").style.display = "none";
+});
 
-
-
-// se empieza a crear el codigo para la logica del conversor
-
+// Generar los colores de líneas aleatoriamente en cada búsqueda
+function randomHex(length) {
+    return ("0".repeat(length) + Math.floor(Math.random() * 16 ** length).toString(16)).slice(-length);
+}
