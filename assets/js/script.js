@@ -1,45 +1,43 @@
 // Declaración de variables
-const input = document.getElementById("input");
-const selector = document.getElementById("selector");
-const resultado = document.getElementById("resultado");
-const urlApi = "https://mindicador.cl/api";
+const clp = document.getElementById("input");
+const urlAPI = "https://mindicador.cl/api";
 const dolar = "https://mindicador.cl/api/dolar";
 const euro = "https://mindicador.cl/api/euro";
-
-const chart = document.getElementById("grafico").getContext("2d");
-let chartInstance;
+const resultado = document.getElementById("resultado");
+const moneda = document.getElementById("selector");
+const chartDOM = document.getElementById("grafico").getContext("2d");
 
 // Request a la API
-async function getMonedas(urlApi) {
-    const endpoint = urlApi;
+async function getMonedas(urlAPI) {
+    const endpoint = urlAPI;
     try {
         const res = await fetch(endpoint);
         const monedas = await res.json();
         return monedas;
     } catch (e) {
-        throw new Error("Error al obtener los datos de la API");
+        alert(e.message);
     }
 }
 
-// Función para convertir USD y euro
+// Función para convertir USD y Euro
 async function convertir() {
-    if (input.value === "" || isNaN(input.value) || input.value < 0.1) {
+    if (clp.value == "" || isNaN(clp.value) || clp.value < 0.1)
         alert("Ingrese un monto válido");
-    } else {
+    else {
         try {
-            const divisas = await getMonedas(urlApi);
+            const divisas = await getMonedas(urlAPI);
 
-            if (selector.value === "dolar") {
+            if (moneda.value == "dolar") {
                 resultado.innerHTML = `Resultado: ${new Intl.NumberFormat("de-DE", {
                     style: "currency",
                     currency: "USD",
-                }).format((input.value / divisas.dolar.valor).toFixed(2))}`;
+                }).format((clp.value / divisas.dolar.valor).toFixed(2))}`;
                 renderGrafica();
-            } else if (selector.value === "euro") {
+            } else if (moneda.value == "euro") {
                 resultado.innerHTML = `Resultado: ${new Intl.NumberFormat("de-DE", {
                     style: "currency",
                     currency: "EUR",
-                }).format((input.value / divisas.euro.valor).toFixed(2))}`;
+                }).format((clp.value / divisas.euro.valor).toFixed(2))}`;
                 renderGrafica();
             }
         } catch (err) {
@@ -50,54 +48,46 @@ async function convertir() {
 }
 
 // Función para cargar los datos en el gráfico
-async function cargarDatos(selector) {
+async function cargarDatos(moneda) {
     const tipoDeGrafica = "line";
-    const titulo = "Histórico " + selector.value.toUpperCase();
+    const titulo = "Histórico " + moneda.value.toUpperCase();
     const colorDeLinea = "#" + randomHex(6);
 
-    try {
-        const divisas = await getMonedas(urlApi + "/" + selector.value);
+    const divisas = await getMonedas(urlAPI + "/" + moneda.value);
 
-        const fechas = divisas.serie.map((elemento) => elemento.fecha);
-        const etiquetas = divisas.serie.map((etiq) => etiq.valor);
+    const fechas = divisas.serie.map((elemento) => elemento.fecha);
+    const etiquetas = divisas.serie.map((etiq) => etiq.valor);
 
-        const config = {
-            type: tipoDeGrafica,
-            data: {
-                labels: fechas.slice(-10).reverse(),
-                datasets: [
-                    {
-                        label: titulo,
-                        borderColor: colorDeLinea,
-                        backgroundColor: colorDeLinea,
-                        data: etiquetas.slice(-10).reverse(),
-                    },
-                ],
-            },
-        };
+    const config = {
+        type: tipoDeGrafica,
+        data: {
+            labels: fechas.reverse().slice(-10),
+            datasets: [
+                {
+                    label: titulo,
+                    borderColor: colorDeLinea,
+                    backgroundColor: colorDeLinea,
+                    data: etiquetas.reverse().slice(-10),
+                },
+            ],
+        },
+    };
 
-        // Función para refrescar el gráfico
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
-        chartInstance = new Chart(chart, config);
-    } catch (err) {
-        alert("Algo salió mal al cargar los datos del gráfico");
-        console.log(err.message);
+    // Función para refrescar el gráfico
+    if (window.chartDOM) {
+        window.chartDOM.destroy();
     }
+    window.chartDOM = new Chart(chartDOM, config);
 }
 
-function renderGrafica() {
-    cargarDatos(selector).then(() => {
-        document.getElementById("grafico").style.display = "block";
-    });
+async function renderGrafica() {
+    await cargarDatos(moneda);
 }
 
-selector.addEventListener("change", function () {
-    document.getElementById("grafico").style.display = "none";
-});
-
-// Generar los colores de líneas aleatoriamente en cada búsqueda
+// Generar colores de líneas aleatoriamente en cada búsqueda
 function randomHex(length) {
-    return ("0".repeat(length) + Math.floor(Math.random() * 16 ** length).toString(16)).slice(-length);
+    return (
+        "0".repeat(length) +
+        Math.floor(Math.random() * 16 ** length).toString(16)
+    ).slice(-length);
 }
