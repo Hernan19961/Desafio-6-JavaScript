@@ -93,3 +93,14 @@ function randomHex(length) {
 }
 
 //agregar button de reset
+
+var reset = document.getElementById('reset');
+
+reset.addEventListener('click', function () {
+    const clp = document.getElementById('input');
+    const resultado = document.getElementById('resultado');
+
+    clp.value = '';
+    resultado.value = '';
+    location.reload();
+});
